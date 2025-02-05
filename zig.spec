@@ -36,6 +36,8 @@ BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
 BuildRequires:	llvm-devel
 BuildRequires:	clang
+BuildRequires:  cmake(Clang)
+BuildRequires:  cmake(LLD)
 BuildRequires:	lld
 
 # Zig needs this to work
