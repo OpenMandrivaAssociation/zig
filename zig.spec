@@ -35,6 +35,8 @@ BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
 BuildRequires:	llvm-devel
+BuildRequires:	clang
+BuildRequires:	lld
 
 # Zig needs this to work
 Requires:       %{name}-libs = %{version}
