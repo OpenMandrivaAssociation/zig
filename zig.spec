@@ -30,7 +30,7 @@ BuildRequires:  glibc-devel
 BuildRequires:  help2man
 BuildRequires:  pkgconfig(libelf)
 BuildRequires:  liburing-devel
-BuildRequires:  mold
+#BuildRequires:  mold
 BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
@@ -79,7 +79,7 @@ This package contains common RPM macros for %{name}.
 %build
 %cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_LINKER_TYPE=MOLD \
+  -DCMAKE_LINKER_TYPE=LLD \
   -DZIG_SHARED_LLVM=On \
   -DZIG_USE_LLVM_CONFIG=ON \
   -DZIG_TARGET_MCPU="baseline" \
