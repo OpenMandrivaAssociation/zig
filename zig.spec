@@ -34,6 +34,7 @@ BuildRequires:  mold
 BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
+BuildRequires:	llvm-devel
 
 # Zig needs this to work
 Requires:       %{name}-libs = %{version}
