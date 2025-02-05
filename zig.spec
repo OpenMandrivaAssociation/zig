@@ -39,6 +39,7 @@ BuildRequires:	clang
 BuildRequires:  cmake(Clang)
 BuildRequires:  cmake(LLD)
 BuildRequires:	lld
+BuildRequires: lib64lldELF-static-devel
 
 # Zig needs this to work
 Requires:       %{name}-libs = %{version}
