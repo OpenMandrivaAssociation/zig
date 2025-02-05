@@ -82,7 +82,7 @@ This package contains common RPM macros for %{name}.
   -DZIG_SHARED_LLVM=On \
   -DZIG_USE_LLVM_CONFIG=ON \
   -DZIG_TARGET_MCPU="baseline" \
-  -DZIG_VERSION:STRING="%{version}"
+  -DZIG_VERSION:STRING="0.14.0"
 
 %make_build
 
