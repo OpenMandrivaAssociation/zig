@@ -70,7 +70,6 @@ This package contains common RPM macros for %{name}.
 %prep
 %autosetup -n %{name}-0.14.0-20250205 -p1 -a2
 
-%build
 %cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_LINKER_TYPE=MOLD \
@@ -78,7 +77,7 @@ This package contains common RPM macros for %{name}.
   -DZIG_USE_LLVM_CONFIG=ON \
   -DZIG_TARGET_MCPU="baseline" \
   -DZIG_VERSION:STRING="%{version}"
-
+%build
 %make_build
 
 %install
