@@ -4,50 +4,36 @@
 %bcond_without  test
 
 Name:           zig
-Version:        0.13.0
-Release:        0
+Version:        0.14.0~20250205
+Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
 Group:          Development/Languages/Other
 URL:            https://ziglang.org/
-Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
+#Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
+Source0:	zig-0.14.0-20250205.tar.xz
 Source1:        macros.%{name}
 # The vendored tarball is for tests. This contains the
 # cached deps. See https://en.opensuse.org/Zig#Packaging
-Source2:        vendor.tar.zst
+#Source2:        vendor.tar.zst
 Source3:        zig-rpmlintrc
-Patch0:         0000-remove-lld-in-cmakelist.patch
-Patch1:         0001-invoke-lld.patch
-Patch2:         0002-no-lld-libs-and-includes.patch
+#Patch0:         0000-remove-lld-in-cmakelist.patch
+#Patch1:         0001-invoke-lld.patch
+#Patch2:         0002-no-lld-libs-and-includes.patch
 # Just copying from Archlinux. Thanks
-Patch3:         https://gitlab.archlinux.org/archlinux/packaging/packages/zig/-/raw/main/skip-localhost-test.patch
-BuildRequires:  clang18
-BuildRequires:  clang18-devel
+#Patch3:         https://gitlab.archlinux.org/archlinux/packaging/packages/zig/-/raw/main/skip-localhost-test.patch
+
 BuildRequires:  cmake
 BuildRequires:  elfutils
-BuildRequires:  gcc-c++
 BuildRequires:  glibc
 BuildRequires:  glibc-devel
-BuildRequires:  glibc-devel-32bit
 BuildRequires:  help2man
-BuildRequires:  libelf-devel
+BuildRequires:  pkgconfig(libelf)
 BuildRequires:  liburing-devel
-BuildRequires:  lld18
-BuildRequires:  lldb18-debuginfo
-BuildRequires:  llvm18-devel
-BuildRequires:  llvm18-devel-debuginfo
 BuildRequires:  mold
 BuildRequires:  ninja
-BuildRequires:  zlib-devel
+BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
-BuildRequires:  (gcc13-c++ if gcc13)
-BuildRequires:  (gcc14-c++ if gcc14)
-BuildRequires:  (gcc15-c++ if gcc15)
-Requires:       lld18
-
-# llvm-config is missing targets for ppc and arm architectures.
-# ExcludeArch:    ppc64 ppc64le %%arm %%ix86
-ExclusiveArch:  x86_64 aarch64 riscv64 %{mips64}
 
 # Zig needs this to work
 Requires:       %{name}-libs = %{version}
@@ -82,51 +68,21 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}-%{version} -p1 -a2
+%autosetup -n %{name}-0.14.0-20250205 -p1 -a2
 
 %build
-# CMAKE on Tumbleweed has the CMAKE_LINKER_TYPE option
-%if 0%{?suse_version} > 1600
-
 %cmake \
-%ifarch aarch64 s390x
   -DCMAKE_BUILD_TYPE=Release \
-%endif
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DCMAKE_C_COMPILER="clang-18" \
-  -DCMAKE_CXX_COMPILER="clang++-18" \
   -DCMAKE_LINKER_TYPE=MOLD \
   -DZIG_SHARED_LLVM=On \
   -DZIG_USE_LLVM_CONFIG=ON \
   -DZIG_TARGET_MCPU="baseline" \
   -DZIG_VERSION:STRING="%{version}"
 
-%else
-
-%cmake \
-%ifarch aarch64 s390x
-  -DCMAKE_BUILD_TYPE=Release \
-%endif
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DCMAKE_C_COMPILER="clang-18" \
-  -DCMAKE_CXX_COMPILER="clang++-18" \
-  -DZIG_SHARED_LLVM=On \
-  -DZIG_USE_LLVM_CONFIG=ON \
-  -DZIG_TARGET_MCPU="baseline" \
-  -DZIG_VERSION:STRING="%{version}"
-
-%endif
-
-# Workaround since CMAKE on Leap does not have
-# the CMAKE_LINKER_TYPE option
-%if 0%{?suse_version} > 1600
-%cmake_build
-%else
-mold -run %cmake_build
-%endif
+%make_build
 
 %install
-%cmake_install
+%make_install -C build
 mkdir -p %{buildroot}%{_mandir}/man1
 help2man --no-discard-stderr "%{buildroot}%{_bindir}/%{name}" --version-option=version --output=%{buildroot}%{_mandir}/man1/%{name}.1
 
