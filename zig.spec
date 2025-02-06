@@ -35,6 +35,7 @@ BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
 BuildRequires:	pkgconfig(libzstd)
+BuildRequires:	lib64zstd-static-devel
 BuildRequires:	llvm-devel
 BuildRequires:	clang
 BuildRequires:  cmake(Clang)
