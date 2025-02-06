@@ -34,6 +34,7 @@ BuildRequires:  liburing-devel
 BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  zstd
+BuildRequires:	pkgconfig(libzstd)
 BuildRequires:	llvm-devel
 BuildRequires:	clang
 BuildRequires:  cmake(Clang)
