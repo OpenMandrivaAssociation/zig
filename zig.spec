@@ -1,4 +1,4 @@
-%global _lto_cflags %{nil}
+%define _disable_lto 1
 %global __builder   ninja
 %bcond_without  macro
 %bcond_without  test
