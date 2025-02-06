@@ -33,6 +33,7 @@ BuildRequires:  liburing-devel
 #BuildRequires:  mold
 BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
+BuildRequires:	lib64z-static-devel
 BuildRequires:  zstd
 BuildRequires:	pkgconfig(libzstd)
 BuildRequires:	lib64zstd-static-devel
