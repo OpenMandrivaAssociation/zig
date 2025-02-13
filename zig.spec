@@ -27,29 +27,28 @@ Source3:        zig-rpmlintrc
 
 BuildRequires:  cmake
 BuildRequires:  elfutils
-BuildRequires:  glibc
-BuildRequires:  glibc-devel
 BuildRequires:  help2man
 BuildRequires:  pkgconfig(libelf)
-BuildRequires:  liburing-devel
+BuildRequires:  pkgconfig(liburing)
 #BuildRequires:  mold
 BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
-BuildRequires:	lib64z-static-devel
+BuildRequires:	pkgconfig(libxml-2.0)
+BuildRequires:	zlib-static-devel
 BuildRequires:  zstd
 BuildRequires:	pkgconfig(libzstd)
-BuildRequires:	lib64zstd-static-devel
+BuildRequires:	%mklibname -d -s zstd
 BuildRequires:	llvm-devel
 BuildRequires:	clang
 BuildRequires:  cmake(Clang)
 BuildRequires:  cmake(LLD)
 BuildRequires:	lld
-BuildRequires:  lib64lldELF-static-devel
+BuildRequires:  %mklibname -d -s lldELF
 BuildRequires:	c++-devel
-BuildRequires:	lib64c++abi-static-devel
-BuildRequires:	lib64clangAnalysis-static-devel
-BuildRequires:	lib64clangBasic-static-devel
-BuildRequires:	lib64lldCommon-static-devel
+BuildRequires:	%mklibname -d -s c++abi
+BuildRequires:	%mklibname -d -s clangAnalysis
+BuildRequires:	%mklibname -d -s clangBasic
+BuildRequires:	%mklibname -d -s lldCommon
 
 
 # Zig needs this to work
@@ -125,7 +124,7 @@ mv -v doc/langref.html.in doc/langref.html
 %files
 %license LICENSE
 %{_bindir}/zig
-%{_mandir}/man1/%{name}.1%{?ext_man}
+%{_mandir}/man1/%{name}.1*
 %doc README.md
 %doc lib/docs
 %doc doc/langref.html
