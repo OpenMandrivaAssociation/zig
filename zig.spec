@@ -24,6 +24,7 @@ Source3:        zig-rpmlintrc
 #Patch2:         0002-no-lld-libs-and-includes.patch
 # Just copying from Archlinux. Thanks
 #Patch3:         https://gitlab.archlinux.org/archlinux/packaging/packages/zig/-/raw/main/skip-localhost-test.patch
+Patch0:		zig-linkage.patch
 
 BuildRequires:  cmake
 BuildRequires:  elfutils
