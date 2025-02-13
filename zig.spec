@@ -43,13 +43,17 @@ BuildRequires:	clang
 BuildRequires:  cmake(Clang)
 BuildRequires:  cmake(LLD)
 BuildRequires:	lld
-BuildRequires:  %mklibname -d -s lldELF
 BuildRequires:	c++-devel
+BuildRequires:  %mklibname -d -s lldELF
 BuildRequires:	%mklibname -d -s c++abi
 BuildRequires:	%mklibname -d -s clangAnalysis
 BuildRequires:	%mklibname -d -s clangBasic
 BuildRequires:	%mklibname -d -s lldCommon
-
+BuildRequires:	%mklibname -d -s lldMinGW
+BuildRequires:	%mklibname -d -s lldCOFF
+BuildRequires:	%mklibname -d -s lldWasm
+BuildRequires:	%mklibname -d -s lldMachO
+BuildRequires:	pkgconfig(z3)
 
 # Zig needs this to work
 Requires:       %{name}-libs = %{version}
