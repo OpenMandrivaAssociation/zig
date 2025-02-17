@@ -34,6 +34,8 @@ BuildRequires:  pkgconfig(liburing)
 #BuildRequires:  mold
 BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
+BuildRequires:	lib64z-ng1
+BuildRequires:	lib64z1
 BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	zlib-static-devel
 BuildRequires:  zstd
