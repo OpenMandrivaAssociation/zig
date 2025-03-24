@@ -6,14 +6,14 @@
 %bcond_without  test
 
 Name:           zig
-Version:        0.14.0~20250217
+Version:        0.14.0
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
 Group:          Development/Languages/Other
 URL:            https://ziglang.org/
 #Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
-Source0:	zig-0.14.0-20250217.tar.xz
+Source0:	https://github.com/ziglang/zig/archive/%{version}/%{name}-%{version}.tar.gz
 Source1:        macros.%{name}
 # The vendored tarball is for tests. This contains the
 # cached deps. See https://en.opensuse.org/Zig#Packaging
@@ -46,6 +46,8 @@ BuildRequires:	clang
 BuildRequires:  cmake(Clang)
 BuildRequires:  cmake(LLD)
 BuildRequires:	lld
+BuildRequires:	stdc++-devel
+BuildRequires:	stdc++-static-devel
 BuildRequires:	c++-devel
 BuildRequires:  %mklibname -d -s lldELF
 BuildRequires:	%mklibname -d -s c++abi
@@ -91,7 +93,7 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}-0.14.0-20250217 -p1 
+%autosetup -n %{name}-%{version} -p1 
 #-a2
 %build
 %cmake \
