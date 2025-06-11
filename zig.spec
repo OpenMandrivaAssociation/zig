@@ -7,14 +7,20 @@
 %bcond_without  macro
 %bcond_without  test
 
+%define date 20250611
+
 Name:           zig
-Version:        0.14.1
+Version:        0.15.0%{?date:~%{date}}
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
 Group:          Development/Languages/Other
 URL:            https://ziglang.org/
+%if 0%{?date:1}
+Source0:	https://github.com/ziglang/zig/archive/refs/heads/master.tar.gz#/zig-%{date}.tar.gz
+%else
 Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
+%endif
 #Source0:	zig-0.14.0-20250205.tar.xz
 Source1:        macros.%{name}
 # The vendored tarball is for tests. This contains the
@@ -93,7 +99,7 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}-%{version} -p1 
+%autosetup -n %{name}-%{?date:master}%{!?date:%{version}} -p1 
 #-a2
 %build
 %cmake \
@@ -102,7 +108,7 @@ This package contains common RPM macros for %{name}.
   -DZIG_SHARED_LLVM=On \
   -DZIG_USE_LLVM_CONFIG=ON \
   -DZIG_TARGET_MCPU="baseline" \
-  -DZIG_VERSION:STRING="%{version}"
+  -DZIG_VERSION:STRING="%(echo %{version} |cut -d'~' -f1)"
 
 %make_build
 
