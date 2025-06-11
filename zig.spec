@@ -93,7 +93,7 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}-0.14.0 -p1 
+%autosetup -n %{name}-%{version} -p1 
 #-a2
 %build
 %cmake \
