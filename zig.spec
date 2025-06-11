@@ -8,8 +8,8 @@
 %bcond_without  test
 
 Name:           zig
-Version:        0.14.0
-Release:        2
+Version:        0.14.1
+Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
 Group:          Development/Languages/Other
