@@ -9,7 +9,7 @@
 
 Name:           zig
 Version:        0.14.0
-Release:        1
+Release:        2
 Summary:        Compiler for the Zig language
 License:        MIT
 Group:          Development/Languages/Other
