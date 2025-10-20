@@ -7,10 +7,10 @@
 %bcond_without  macro
 %bcond_without  test
 
-%define date 20250611
+%define date 20251020
 
 Name:           zig
-Version:        0.15.0%{?date:~%{date}}
+Version:        0.15.1%{?date:~%{date}}
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
@@ -108,8 +108,8 @@ This package contains common RPM macros for %{name}.
   -DZIG_SHARED_LLVM=On \
   -DZIG_USE_LLVM_CONFIG=ON \
   -DZIG_TARGET_MCPU="baseline" \
-  -DZIG_VERSION:STRING="%(echo %{version} |cut -d'~' -f1)"
-
+  -DZIG_VERSION:STRING="%(echo %{version} |cut -d'~' -f1)" \
+  -DCMAKE_EXE_LINKER_FLAGS="-Wl,--build-id=sha1"
 %make_build
 
 %install
