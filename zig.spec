@@ -34,6 +34,7 @@ Source3:        zig-rpmlintrc
 #Patch3:         https://gitlab.archlinux.org/archlinux/packaging/packages/zig/-/raw/main/skip-localhost-test.patch
 Patch0:		zig-linkage.patch
 
+BuildRequires:	make
 BuildRequires:  cmake
 BuildRequires:  elfutils
 BuildRequires:  help2man
