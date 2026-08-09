@@ -10,7 +10,7 @@
 #define date 20251020
 
 Name:           zig
-Version:        0.16.0%{?date:~%{date}}
+Version:        0.17.0-dev.1640+2597da025
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
@@ -19,7 +19,8 @@ URL:            https://ziglang.org/
 %if 0%{?date:1}
 Source0:	https://github.com/ziglang/zig/archive/refs/heads/master.tar.gz#/zig-%{date}.tar.gz
 %else
-Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
+Source0:	https://ziglang.org/builds/zig-0.17.0-dev.1640+2597da025.tar.xz
+#Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
 %endif
 #Source0:	zig-0.14.0-20250205.tar.xz
 Source1:        macros.%{name}
@@ -100,7 +101,7 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}-%{?date:master}%{!?date:%{version}} -p1 
+%autosetup -n zig-0.17.0-dev.1640+2597da025 -p1 
 #-a2
 %build
 %cmake \
