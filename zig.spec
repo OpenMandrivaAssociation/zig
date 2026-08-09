@@ -10,7 +10,7 @@
 #define date 20251020
 
 Name:           zig
-Version:        0.17.0-dev.1640+2597da025
+Version:        0.17.0
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
