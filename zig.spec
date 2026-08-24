@@ -7,17 +7,19 @@
 %bcond_without  macro
 %bcond_without  test
 
-%define date 20251020
+# Snapshot of the llvm23 branch: master still requires LLVM 22, we have LLVM 23.
+# HEAD aae4ff3e59bf (2026-08-23). GitHub master has been frozen since the Codeberg move.
+%define date 20260824
 
 Name:           zig
-Version:        0.15.1%{?date:~%{date}}
+Version:        0.17.0%{?date:~%{date}}
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
 Group:          Development/Languages/Other
 URL:            https://ziglang.org/
 %if 0%{?date:1}
-Source0:	https://github.com/ziglang/zig/archive/refs/heads/master.tar.gz#/zig-%{date}.tar.gz
+Source0:	https://codeberg.org/ziglang/zig/archive/llvm23.tar.gz#/zig-%{date}.tar.gz
 %else
 Source0:        https://ziglang.org/download/%{version}/%{name}-%{version}.tar.xz
 %endif
@@ -67,7 +69,7 @@ BuildRequires:	%mklibname -d -s lldMachO
 BuildRequires:	pkgconfig(z3)
 
 # Zig needs this to work
-Requires:       %{name}-libs = %{version}
+Requires:       %{name}-libs = %{EVRD}
 
 # Zig Macros
 Recommends:     %{name}-rpm-macros
@@ -99,7 +101,7 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}-%{?date:master}%{!?date:%{version}} -p1 
+%autosetup -n %{name}%{!?date:-%{version}} -p1 
 #-a2
 %build
 %cmake \

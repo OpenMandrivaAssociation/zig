@@ -1,7 +1,7 @@
-diff -up zig-0.14.0-20250205/CMakeLists.txt.omv~ zig-0.14.0-20250205/CMakeLists.txt
---- zig-0.14.0-20250205/CMakeLists.txt.omv~	2025-02-13 06:28:42.044213901 +0100
-+++ zig-0.14.0-20250205/CMakeLists.txt	2025-02-13 06:29:00.634409266 +0100
-@@ -893,7 +893,7 @@ set_target_properties(zig2 PROPERTIES
+diff -up zig/CMakeLists.txt.omv~ zig/CMakeLists.txt
+--- zig/CMakeLists.txt.omv~
++++ zig/CMakeLists.txt
+@@ -708,7 +708,7 @@ set_target_properties(zig2 PROPERTIES
    LINK_FLAGS "${ZIG2_LINK_FLAGS}"
  )
  target_include_directories(zig2 PUBLIC stage1)
