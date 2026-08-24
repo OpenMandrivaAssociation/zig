@@ -3,7 +3,6 @@
 %define _disable_ld_no_undefined 1
 
 %define _disable_lto 1
-%global __builder   ninja
 %bcond_without  macro
 %bcond_without  test
 
@@ -104,7 +103,7 @@ This package contains common RPM macros for %{name}.
 %autosetup -n %{name}%{!?date:-%{version}} -p1 
 #-a2
 %build
-%cmake \
+%cmake -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_LINKER_TYPE=LLD \
   -DZIG_SHARED_LLVM=On \
@@ -112,10 +111,10 @@ This package contains common RPM macros for %{name}.
   -DZIG_TARGET_MCPU="baseline" \
   -DZIG_VERSION:STRING="%(echo %{version} |cut -d'~' -f1)" \
   -DCMAKE_EXE_LINKER_FLAGS="-Wl,--build-id=sha1"
-%make_build
+%__cmake --build .
 
 %install
-%make_install -C build
+DESTDIR=%{buildroot} %__cmake --install build
 mkdir -p %{buildroot}%{_mandir}/man1
 help2man --no-discard-stderr "%{buildroot}%{_bindir}/%{name}" --version-option=version --output=%{buildroot}%{_mandir}/man1/%{name}.1
 
