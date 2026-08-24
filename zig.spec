@@ -35,13 +35,19 @@ Source3:        zig-rpmlintrc
 #Patch3:         https://gitlab.archlinux.org/archlinux/packaging/packages/zig/-/raw/main/skip-localhost-test.patch
 Patch0:		zig-linkage.patch
 
-BuildRequires:  cmake
+BuildSystem:	cmake
+BuildOption:	-DCMAKE_BUILD_TYPE=Release
+BuildOption:	-DCMAKE_LINKER_TYPE=LLD
+BuildOption:	-DZIG_SHARED_LLVM=ON
+BuildOption:	-DZIG_USE_LLVM_CONFIG=ON
+BuildOption:	-DZIG_TARGET_MCPU=baseline
+BuildOption:	-DZIG_VERSION:STRING=%(echo %{version} |cut -d'~' -f1)
+BuildOption:	-DZIG_EXTRA_BUILD_ARGS=--build-id=sha1
+
 BuildRequires:  elfutils
 BuildRequires:  help2man
 BuildRequires:  pkgconfig(libelf)
 BuildRequires:  pkgconfig(liburing)
-#BuildRequires:  mold
-BuildRequires:  ninja
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	zlib-static-devel
@@ -100,39 +106,25 @@ This package contains common RPM macros for %{name}.
 %endif
 
 %prep
-%autosetup -n %{name}%{!?date:-%{version}} -p1 
-#-a2
-%build
-%cmake -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_LINKER_TYPE=LLD \
-  -DZIG_SHARED_LLVM=On \
-  -DZIG_USE_LLVM_CONFIG=ON \
-  -DZIG_TARGET_MCPU="baseline" \
-  -DZIG_VERSION:STRING="%(echo %{version} |cut -d'~' -f1)" \
-  -DCMAKE_EXE_LINKER_FLAGS="-Wl,--build-id=sha1"
-%__cmake --build .
+%autosetup -n %{name}%{!?date:-%{version}} -p1
 
-%install
-DESTDIR=%{buildroot} %__cmake --install build
+%install -a
 mkdir -p %{buildroot}%{_mandir}/man1
 help2man --no-discard-stderr "%{buildroot}%{_bindir}/%{name}" --version-option=version --output=%{buildroot}%{_mandir}/man1/%{name}.1
 
-mkdir -p %{buildroot}%{_rpmconfigdir}/macros.d/
 install -p -m644 %{SOURCE1} %{buildroot}%{_rpmmacrodir}
-
-sed -i -e "s|@@ZIG_VERSION@@|%{version}|"  %{buildroot}%{_rpmmacrodir}/macros.%{name}
+sed -i -e "s|@@ZIG_VERSION@@|%{version}|" %{buildroot}%{_rpmmacrodir}/macros.%{name}
 
 mv -v doc/langref.html.in doc/langref.html
 
-%if 0%{?with test}
+%if %{with test}
 %check
-./build/stage3/bin/zig build test -Dconfig_h=build/config.h \
+./_OMV_rpm_build/stage3/bin/zig build test -Dconfig_h=_OMV_rpm_build/config.h \
 	-Dcpu=baseline \
 	-Dskip-debug \
 	-Dskip-release-safe \
 	-Dskip-release-small \
-        -Dstatic-llvm=false \
+	-Dstatic-llvm=false \
 	-Denable-llvm=true \
 	-Dskip-non-native=true
 %endif
