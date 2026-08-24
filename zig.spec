@@ -3,6 +3,8 @@
 %define _disable_ld_no_undefined 1
 
 %define _disable_lto 1
+# zig2.c is a huge generated C file; -g3 OOMs ABF builders (clang exit 137)
+%global optflags %(echo %{optflags} | sed -e 's/-g3/-g0/g')
 %bcond_without  macro
 %bcond_without  test
 
