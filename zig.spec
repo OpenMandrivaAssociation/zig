@@ -120,6 +120,7 @@ export CMAKE_BUILD_PARALLEL_LEVEL=1
 mkdir -p %{buildroot}%{_mandir}/man1
 help2man --no-discard-stderr "%{buildroot}%{_bindir}/%{name}" --version-option=version --output=%{buildroot}%{_mandir}/man1/%{name}.1
 
+mkdir -p %{buildroot}%{_rpmmacrodir}
 install -p -m644 %{SOURCE1} %{buildroot}%{_rpmmacrodir}
 sed -i -e "s|@@ZIG_VERSION@@|%{version}|" %{buildroot}%{_rpmmacrodir}/macros.%{name}
 
