@@ -7,7 +7,8 @@
 # OOMs ABF builders (clang exit 137). Keep C++ (zigcpp) on the usual flags.
 %global optflags %(echo %{optflags} | sed -e 's/-g3/-g0/g')
 %bcond_without  macro
-%bcond_without  test
+# Full "zig build test" needs a vendored package cache in 0.17+
+%bcond_with	test
 
 # Snapshot of the llvm23 branch: master still requires LLVM 22, we have LLVM 23.
 # HEAD aae4ff3e59bf (2026-08-23). GitHub master has been frozen since the Codeberg move.
@@ -128,14 +129,7 @@ mv -v doc/langref.html.in doc/langref.html
 
 %if %{with test}
 %check
-./_OMV_rpm_build/stage3/bin/zig build test -Dconfig_h=_OMV_rpm_build/config.h \
-	-Dcpu=baseline \
-	-Dskip-debug \
-	-Dskip-release-safe \
-	-Dskip-release-small \
-	-Dstatic-llvm=false \
-	-Denable-llvm=true \
-	-Dskip-non-native=true
+%{buildroot}%{_bindir}/zig test test/behavior.zig -Itest
 %endif
 
 %files
