@@ -3,8 +3,7 @@
 %define _disable_ld_no_undefined 1
 
 %define _disable_lto 1
-# zig1.c / zig2.c are huge generated C files. Distro -O3 -g3 -fstack-protector-all
-# OOMs ABF builders (clang exit 137). Keep C++ (zigcpp) on the usual flags.
+# zig1.c / zig2.c are huge generated C files; -g3 OOMs ABF builders (clang exit 137)
 %global optflags %(echo %{optflags} | sed -e 's/-g3/-g0/g')
 %bcond_without  macro
 # Full "zig build test" needs a vendored package cache in 0.17+
@@ -47,8 +46,6 @@ BuildOption:	-DZIG_USE_LLVM_CONFIG=ON
 BuildOption:	-DZIG_TARGET_MCPU=baseline
 BuildOption:	-DZIG_VERSION:STRING=%(echo %{version} |cut -d'~' -f1)
 BuildOption:	-DZIG_EXTRA_BUILD_ARGS=--build-id=sha1
-BuildOption:	-DCMAKE_C_FLAGS=-O0
-BuildOption:	-DCMAKE_C_FLAGS_RELEASE=-O0
 
 BuildRequires:  elfutils
 BuildRequires:  help2man
