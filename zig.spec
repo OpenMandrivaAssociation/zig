@@ -136,6 +136,7 @@ mv -v doc/langref.html.in doc/langref.html
 %doc README.md
 %doc lib/docs
 %doc doc/langref.html
+%doc %{_prefix}/doc/langref.html
 
 %files libs
 %dir %{_prefix}/lib/%{name}
