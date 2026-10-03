@@ -1,0 +1,247 @@
+--- zig/CMakeLists.txt
++++ zig/CMakeLists.txt
+@@ -133,9 +133,9 @@
+     set(ZIG_SYSTEM_LIBCXX "stdc++" CACHE STRING "system libcxx name for build.zig")
+ endif()
+ 
+-find_package(llvm 22)
+-find_package(clang 22)
+-find_package(lld 22)
++find_package(llvm 23)
++find_package(clang 23)
++find_package(lld 23)
+ 
+ if(ZIG_STATIC_ZLIB)
+     if (MSVC)
+--- zig/src/zig_clang_cc1_main.cpp
++++ zig/src/zig_clang_cc1_main.cpp
+@@ -144,13 +144,13 @@
+   std::unique_ptr<llvm::TargetMachine> TheTargetMachine(
+       TheTarget->createTargetMachine(Triple, "", "", Options, std::nullopt));
+   const llvm::Triple &MachineTriple = TheTargetMachine->getTargetTriple();
+-  const llvm::MCSubtargetInfo *MCInfo = TheTargetMachine->getMCSubtargetInfo();
++  const llvm::MCSubtargetInfo &MCInfo = TheTargetMachine->getMCSubtargetInfo();
+   const llvm::ArrayRef<llvm::SubtargetFeatureKV> Features =
+-    MCInfo->getAllProcessorFeatures();
++      MCInfo.getAllProcessorFeatures();
+ 
+   llvm::StringMap<llvm::StringRef> DescMap;
+   for (const llvm::SubtargetFeatureKV &feature : Features)
+-    DescMap.insert({feature.Key, feature.Desc});
++    DescMap.insert({feature.key(), feature.desc()});
+ 
+   if (MachineTriple.isRISCV())
+     llvm::RISCVISAInfo::printSupportedExtensions(DescMap);
+@@ -187,23 +187,23 @@
+       TheTarget->createTargetMachine(Triple, TargetOpts.CPU, FeaturesStr,
+                                      BackendOptions, std::nullopt));
+   const llvm::Triple &MachineTriple = TheTargetMachine->getTargetTriple();
+-  const llvm::MCSubtargetInfo *MCInfo = TheTargetMachine->getMCSubtargetInfo();
++  const llvm::MCSubtargetInfo &MCInfo = TheTargetMachine->getMCSubtargetInfo();
+ 
+   // Extract the feature names that are enabled for the given target.
+   // We do that by capturing the key from the set of SubtargetFeatureKV entries
+   // provided by MCSubtargetInfo, which match the '-target-feature' values.
+-  const std::vector<llvm::SubtargetFeatureKV> Features =
+-    MCInfo->getEnabledProcessorFeatures();
++  const std::vector<const llvm::SubtargetFeatureKV *> Features =
++      MCInfo.getEnabledProcessorFeatures();
+   std::set<llvm::StringRef> EnabledFeatureNames;
+-  for (const llvm::SubtargetFeatureKV &feature : Features)
+-    EnabledFeatureNames.insert(feature.Key);
++  for (const llvm::SubtargetFeatureKV *feature : Features)
++    EnabledFeatureNames.insert(feature->key());
+ 
+   if (MachineTriple.isAArch64())
+     llvm::AArch64::printEnabledExtensions(EnabledFeatureNames);
+   else if (MachineTriple.isRISCV()) {
+     llvm::StringMap<llvm::StringRef> DescMap;
+-    for (const llvm::SubtargetFeatureKV &feature : Features)
+-      DescMap.insert({feature.Key, feature.Desc});
++    for (const llvm::SubtargetFeatureKV *feature : Features)
++      DescMap.insert({feature->key(), feature->desc()});
+     llvm::RISCVISAInfo::printEnabledExtensions(MachineTriple.isArch64Bit(),
+                                                EnabledFeatureNames, DescMap);
+   } else {
+@@ -289,10 +289,8 @@
+                                   static_cast<void*>(&Clang->getDiagnostics()));
+ 
+   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
+-  if (!Success) {
+-    Clang->getDiagnosticClient().finish();
++  if (!Success)
+     return 1;
+-  }
+ 
+   // Execute the frontend actions.
+   {
+@@ -339,6 +337,9 @@
+ 
+   // When running with -disable-free, don't do any destruction or shutdown.
+   if (Clang->getFrontendOpts().DisableFree) {
++    // LLVM 23 removed DiagnosticConsumer::finish(). Destroy it before the
++    // CompilerInstance is intentionally leaked.
++    Clang->getDiagnosticClient().~DiagnosticConsumer();
+     llvm::BuryPointer(std::move(Clang));
+     return !Success;
+   }
+--- zig/src/zig_clang_cc1as_main.cpp
++++ zig/src/zig_clang_cc1as_main.cpp
+@@ -497,8 +497,8 @@
+            << Opts.CPU << FS.empty() << FS;
+   }
+ 
+-  MCContext Ctx(Triple(Opts.Triple), MAI.get(), MRI.get(), STI.get(), &SrcMgr,
+-                &MCOptions);
++  // LLVM 23 dropped MCTargetOptions from the MCContext constructor.
++  MCContext Ctx(Triple(Opts.Triple), *MAI, *MRI, *STI, &SrcMgr);
+ 
+   bool PIC = false;
+   if (Opts.RelocationModel == "static") {
+@@ -619,7 +619,7 @@
+ 
+   // FIXME: init MCTargetOptions from sanitizer flags here.
+   std::unique_ptr<MCTargetAsmParser> TAP(
+-      TheTarget->createMCAsmParser(*STI, *Parser, *MCII, MCOptions));
++      TheTarget->createMCAsmParser(*STI, *Parser, *MCII));
+   if (!TAP)
+     Failed = Diags.Report(diag::err_target_unknown_triple) << Opts.Triple.str();
+ 
+--- zig/src/zig_llvm.cpp
++++ zig/src/zig_llvm.cpp
+@@ -373,7 +373,7 @@
+     if (options->is_debug)
+       opt_level = OptimizationLevel::O0;
+     else if (options->is_small)
+-      opt_level = OptimizationLevel::Oz;
++      opt_level = OptimizationLevel::O2;
+     else
+       opt_level = OptimizationLevel::O3;
+ 
+--- zig/src/zig_clang_driver.cpp
++++ zig/src/zig_clang_driver.cpp
+@@ -445,8 +445,6 @@
+                                                   *C, *FailingCommand))
+     Res = 1;
+ 
+-  Diags.getClient()->finish();
+-
+   if (!UseNewCC1Process && IsCrash) {
+     // When crashing in -fintegrated-cc1 mode, bury the timer pointers, because
+     // the internal linked list might point to already released stack frames.
+--- zig/cmake/Findllvm.cmake
++++ zig/cmake/Findllvm.cmake
+@@ -17,12 +17,12 @@
+     # terminate when the right LLVM version is not found.
+     unset(LLVM_CONFIG_EXE CACHE)
+     find_program(LLVM_CONFIG_EXE
+-        NAMES llvm-config-22 llvm-config-22.0 llvm-config220 llvm-config22 llvm-config NAMES_PER_DIR
++        NAMES llvm-config-23 llvm-config-23.0 llvm-config230 llvm-config23 llvm-config NAMES_PER_DIR
+         PATHS
+             "/mingw64/bin"
+             "/c/msys64/mingw64/bin"
+             "c:/msys64/mingw64/bin"
+-            "C:/Libraries/llvm-22.0.0/bin")
++            "C:/Libraries/llvm-23.0.0/bin")
+ 
+     if ("${LLVM_CONFIG_EXE}" STREQUAL "LLVM_CONFIG_EXE-NOTFOUND")
+       if (NOT LLVM_CONFIG_ERROR_MESSAGES STREQUAL "")
+@@ -40,9 +40,9 @@
+       OUTPUT_STRIP_TRAILING_WHITESPACE)
+ 
+     get_filename_component(LLVM_CONFIG_DIR "${LLVM_CONFIG_EXE}" DIRECTORY)
+-    if("${LLVM_CONFIG_VERSION}" VERSION_LESS 22 OR "${LLVM_CONFIG_VERSION}" VERSION_EQUAL 23 OR "${LLVM_CONFIG_VERSION}" VERSION_GREATER 23)
++    if("${LLVM_CONFIG_VERSION}" VERSION_LESS 23 OR "${LLVM_CONFIG_VERSION}" VERSION_EQUAL 24 OR "${LLVM_CONFIG_VERSION}" VERSION_GREATER 24)
+       # Save the error message, in case this is the last llvm-config we find
+-      list(APPEND LLVM_CONFIG_ERROR_MESSAGES "expected LLVM 22.x but found ${LLVM_CONFIG_VERSION} using ${LLVM_CONFIG_EXE}")
++      list(APPEND LLVM_CONFIG_ERROR_MESSAGES "expected LLVM 23.x but found ${LLVM_CONFIG_VERSION} using ${LLVM_CONFIG_EXE}")
+ 
+       # Ignore this directory and try the search again
+       list(APPEND CMAKE_IGNORE_PATH "${LLVM_CONFIG_DIR}")
+@@ -66,9 +66,9 @@
+       if (LLVM_CONFIG_ERROR)
+         # Save the error message, in case this is the last llvm-config we find
+         if (ZIG_SHARED_LLVM)
+-          list(APPEND LLVM_CONFIG_ERROR_MESSAGES "LLVM 22.x found at ${LLVM_CONFIG_EXE} does not support linking as a shared library")
++          list(APPEND LLVM_CONFIG_ERROR_MESSAGES "LLVM 23.x found at ${LLVM_CONFIG_EXE} does not support linking as a shared library")
+         else()
+-          list(APPEND LLVM_CONFIG_ERROR_MESSAGES "LLVM 22.x found at ${LLVM_CONFIG_EXE} does not support linking as a static library")
++          list(APPEND LLVM_CONFIG_ERROR_MESSAGES "LLVM 23.x found at ${LLVM_CONFIG_EXE} does not support linking as a static library")
+         endif()
+ 
+         # Ignore this directory and try the search again
+--- zig/cmake/Findclang.cmake
++++ zig/cmake/Findclang.cmake
+@@ -17,10 +17,10 @@
+ if(${LLVM_LINK_MODE} STREQUAL "shared")
+   find_library(CLANG_LIBRARIES
+     NAMES
+-      libclang-cpp.so.22
+-      libclang-cpp.so.22.1
+-      clang-cpp-22.0
+-      clang-cpp220
++      libclang-cpp.so.23
++      libclang-cpp.so.23.1
++      clang-cpp-23.0
++      clang-cpp230
+       clang-cpp
+     NAMES_PER_DIR
+     HINTS "${LLVM_LIBDIRS}"
+--- zig/cmake/Findlld.cmake
++++ zig/cmake/Findlld.cmake
+@@ -9,23 +9,23 @@
+ find_path(LLD_INCLUDE_DIRS NAMES lld/Common/Driver.h
+     HINTS ${LLVM_INCLUDE_DIRS}
+     PATHS
+-        /usr/lib/llvm-22/include
+-        /usr/local/llvm220/include
+-        /usr/local/llvm22/include
+-        /usr/local/opt/lld@22/include
+-        /opt/homebrew/opt/lld@22/include
+-        /home/linuxbrew/.linuxbrew/opt/lld@22/include
++        /usr/lib/llvm-23/include
++        /usr/local/llvm230/include
++        /usr/local/llvm23/include
++        /usr/local/opt/lld@23/include
++        /opt/homebrew/opt/lld@23/include
++        /home/linuxbrew/.linuxbrew/opt/lld@23/include
+         /mingw64/include)
+ 
+-find_library(LLD_LIBRARY NAMES lld-22.0 lld220 lld NAMES_PER_DIR
++find_library(LLD_LIBRARY NAMES lld-23.0 lld230 lld NAMES_PER_DIR
+     HINTS ${LLVM_LIBDIRS}
+     PATHS
+-        /usr/lib/llvm-22/lib
+-        /usr/local/llvm220/lib
+-        /usr/local/llvm22/lib
+-        /usr/local/opt/lld@22/lib
+-        /opt/homebrew/opt/lld@22/lib
+-        /home/linuxbrew/.linuxbrew/opt/lld@22/lib
++        /usr/lib/llvm-23/lib
++        /usr/local/llvm230/lib
++        /usr/local/llvm23/lib
++        /usr/local/opt/lld@23/lib
++        /opt/homebrew/opt/lld@23/lib
++        /home/linuxbrew/.linuxbrew/opt/lld@23/lib
+ )
+ if(EXISTS ${LLD_LIBRARY})
+     set(LLD_LIBRARIES ${LLD_LIBRARY})
+@@ -36,12 +36,12 @@
+             HINTS ${LLVM_LIBDIRS}
+             PATHS
+                 ${LLD_LIBDIRS}
+-                /usr/lib/llvm-22/lib
+-                /usr/local/llvm220/lib
+-                /usr/local/llvm22/lib
+-                /usr/local/opt/lld@22/lib
+-                /opt/homebrew/opt/lld@22/lib
+-                /home/linuxbrew/.linuxbrew/opt/lld@22/lib
++                /usr/lib/llvm-23/lib
++                /usr/local/llvm230/lib
++                /usr/local/llvm23/lib
++                /usr/local/opt/lld@23/lib
++                /opt/homebrew/opt/lld@23/lib
++                /home/linuxbrew/.linuxbrew/opt/lld@23/lib
+                 /mingw64/lib
+                 /c/msys64/mingw64/lib
+                 c:/msys64/mingw64/lib)

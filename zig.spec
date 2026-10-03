@@ -9,9 +9,9 @@
 # Full "zig build test" needs a vendored package cache in 0.17+
 %bcond_with	test
 
-# Snapshot of the llvm23 branch: master still requires LLVM 22, we have LLVM 23.
-# HEAD aae4ff3e59bf (2026-08-23). GitHub master has been frozen since the Codeberg move.
-%define date 20260824
+# Official 0.17.0. Cooker has LLVM 23; upstream CMake still asks for 22.
+# zig-llvm23.patch is only that API delta. The codeberg llvm23 branch is
+# already 0.18.0-dev and is not this release.
 
 Name:           zig
 Version:        0.17.0%{?date:~%{date}}
@@ -37,6 +37,8 @@ Source3:        zig-rpmlintrc
 # Just copying from Archlinux. Thanks
 #Patch3:         https://gitlab.archlinux.org/archlinux/packaging/packages/zig/-/raw/main/skip-localhost-test.patch
 Patch0:		zig-linkage.patch
+# find_package / Find*.cmake for LLVM 23, plus MCSubtargetInfo and MCContext.
+Patch1:		zig-llvm23.patch
 
 BuildSystem:	cmake
 BuildOption:	-DCMAKE_BUILD_TYPE=Release
