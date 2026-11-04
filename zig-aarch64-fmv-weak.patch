@@ -1,0 +1,25 @@
+diff -up zig-0.17.1/lib/compiler_rt/fmv.zig zig-0.17.1/lib/compiler_rt/fmv.zig
+--- zig-0.17.1/lib/compiler_rt/fmv.zig	2026-11-02 22:41:30.000000000 +0100
++++ zig-0.17.1/lib/compiler_rt/fmv.zig	2026-11-04 21:15:53.660451038 +0100
+@@ -17,8 +17,19 @@
+ 
+ const aarch64 = struct {
+     comptime {
+-        symbol(&__aarch64_cpu_features, "__aarch64_cpu_features");
+-        symbol(&__init_cpu_features_resolver, "__init_cpu_features_resolver");
++        // The C bootstrap emits these as strong symbols. clang also links
++        // libclang_rt.builtins.a, whose aarch64.c.o defines the same names
++        // plus __aarch64_have_lse_atomics. Weak lets the system copies win.
++        @export(&__aarch64_cpu_features, .{
++            .name = "__aarch64_cpu_features",
++            .linkage = .weak,
++            .visibility = .hidden,
++        });
++        @export(&__init_cpu_features_resolver, .{
++            .name = "__init_cpu_features_resolver",
++            .linkage = .weak,
++            .visibility = .hidden,
++        });
+     }
+ 
+     var __aarch64_cpu_features: extern struct {

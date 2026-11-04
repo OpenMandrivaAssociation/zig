@@ -39,6 +39,9 @@ Source3:        zig-rpmlintrc
 Patch0:		zig-linkage.patch
 # find_package / Find*.cmake for LLVM 23, plus MCSubtargetInfo and MCContext.
 Patch1:		zig-llvm23.patch
+# aarch64 zig2 links zig's compiler-rt and libclang_rt.builtins.a, which
+# both define the FMV symbols. Export zig's copies as weak.
+Patch2:		zig-aarch64-fmv-weak.patch
 
 BuildSystem:	cmake
 BuildOption:	-DCMAKE_BUILD_TYPE=Release
