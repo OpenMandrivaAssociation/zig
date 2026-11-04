@@ -9,12 +9,12 @@
 # Full "zig build test" needs a vendored package cache in 0.17+
 %bcond_with	test
 
-# Official 0.17.0. Cooker has LLVM 23; upstream CMake still asks for 22.
+# Official 0.17.1. Cooker has LLVM 23; upstream CMake still asks for 22.
 # zig-llvm23.patch is only that API delta. The codeberg llvm23 branch is
 # already 0.18.0-dev and is not this release.
 
 Name:           zig
-Version:        0.17.0%{?date:~%{date}}
+Version:        0.17.1%{?date:~%{date}}
 Release:        1
 Summary:        Compiler for the Zig language
 License:        MIT
